@@ -1,5 +1,5 @@
-import { z } from "@hono/zod-openapi";
-import { GamesSchema } from "./games.schema.js";
+import { z } from "zod";
+import { GamesSchema } from "./games.schema.ts";
 
 // import type { Meta } from "../../types.js";
 
