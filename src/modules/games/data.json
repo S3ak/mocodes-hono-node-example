@@ -1,0 +1,90 @@
+[
+  {
+    "id": "8b055011-3d00-4332-86f7-ffb721031f3e",
+    "name": "Momo arena",
+    "genre": "RPG",
+    "release": "2025-11-26T10:20:00.492Z",
+    "price": 20.47,
+    "rating": 2
+  },
+  {
+    "id": "30124dc1-d9d9-4c08-b18b-98f590814a37",
+    "name": "Tricia Runolfsson",
+    "genre": "RPG",
+    "release": "2025-10-28T11:53:16.267Z",
+    "price": 39.47,
+    "rating": 0
+  },
+  {
+    "id": "c0da7bc7-cbf9-48c6-afb2-4c9913373255",
+    "name": "Phyllis Collins",
+    "genre": "FPS",
+    "release": "2026-01-04T04:34:11.544Z",
+    "price": 18.55,
+    "rating": 2
+  },
+  {
+    "id": "7e73f5ad-ef53-4dcc-a8c9-a48c2ed23350",
+    "name": "Cheryl Hickle",
+    "genre": "FPS",
+    "release": "2025-11-19T03:54:58.556Z",
+    "price": 58.98,
+    "rating": 3
+  },
+  {
+    "id": "c2908356-2be4-425b-ac6c-2768e4bc7a5d",
+    "name": "Kristine Keeling",
+    "genre": "Action",
+    "release": "2025-11-01T23:51:45.999Z",
+    "price": 39.04,
+    "rating": 4
+  },
+  {
+    "id": "1887a217-e76a-4b2b-9845-f71d150d1371",
+    "name": "Mike Roberts II",
+    "genre": "RPG",
+    "release": "2026-01-06T01:32:47.933Z",
+    "price": 18.89,
+    "rating": 3
+  },
+  {
+    "id": "a248f01c-b227-41ee-981b-f7a9a1051d4b",
+    "name": "Lena Halvorson",
+    "genre": "RPG",
+    "release": "2025-12-07T07:51:43.736Z",
+    "price": 29.18,
+    "rating": 1
+  },
+  {
+    "id": "4f857451-7728-4180-8139-c159e099da58",
+    "name": "Billie Torp",
+    "genre": "Action",
+    "release": "2025-12-14T03:28:40.882Z",
+    "price": 31.16,
+    "rating": 3
+  },
+  {
+    "id": "6b9317b2-85f2-4ef3-a5ab-244a23dacce7",
+    "name": "dodo garabage",
+    "genre": "FPS",
+    "release": "20661012",
+    "price": 60,
+    "rating": 1
+  },
+  {
+    "id": "8e200c87-e633-470c-87fc-58361755f404",
+    "name": "gfaergareg",
+    "genre": "FPS",
+    "release": "20661012",
+    "price": 60,
+    "rating": 1
+  },
+  {
+    "id": "826cd5e9-d19c-4319-bee3-980dc6651c76",
+    "name": "boom!",
+    "genre": "FPS",
+    "release": "20661012",
+    "price": 60,
+    "rating": 1
+  }
+]
