@@ -13,6 +13,14 @@ const filterSchema = z.object({
   sort: z.enum(["asc", "desc"]).default("asc").optional(),
 });
 
+const newGameFormSchema = z.object({
+  name: z.string().min(2).max(256),
+  genre: z.string("You are missing a genre"),
+  release: z.string("Release year is missing"),
+  price: z.string(),
+  rating: z.string(),
+});
+
 games
   .get("/", zValidator("query", filterSchema), (c) => {
     const { maxPrice, genre } = c.req.valid("query");
@@ -49,12 +57,57 @@ games
     if (!foundGames || foundGames.length === 0)
       return c.text("Could not found games", 404);
     return c.json(foundGames);
+  })
+  .post("/", zValidator("form", newGameFormSchema), async (c) => {
+    const { name, genre, release, price, rating } = c.req.valid("form");
+
+    let newGames = [
+      ...mockGames,
+      {
+        name,
+        genre,
+        release,
+        price,
+        rating,
+      },
+    ];
+
+    console.log(
+      `name ${name}, genre ${genre}, release ${release}, price ${price}, rating ${rating}`
+    );
+
+    return c.json(
+      {
+        ok: true,
+        message: "Game created successfully!",
+        data: {
+          name,
+          genre,
+          release,
+          price,
+          rating,
+        },
+      },
+      201
+    );
   });
 
+/**
+ * Filters games by maximum price.
+ * @param games - Array of games to filter
+ * @param maxPrice - Maximum price threshold (exclusive)
+ * @returns Filtered array of games with price less than maxPrice
+ */
 function filterByMaxPrice(games: Games[], maxPrice: number) {
   return games.filter(({ price }) => price < maxPrice);
 }
 
+/**
+ * Filters games by genre (case-insensitive).
+ * @param games - Array of games to filter
+ * @param genre - Genre name to filter by
+ * @returns Filtered array of games matching the specified genre
+ */
 function filterByGenre(games: Games[], genre: string) {
   return games.filter(
     (game) => game.genre.toLowerCase() === genre.toLowerCase()
