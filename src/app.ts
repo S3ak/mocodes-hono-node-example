@@ -3,8 +3,7 @@ import { env } from "hono/adapter";
 import dotenv from "dotenv";
 import { app as products } from "./modules/products/products.route.js";
 import games from "./modules/games/games.route.js";
-
-// import games from "./modules/games/games.route.js";
+import users from "./modules/users/users.route.js";
 
 dotenv.config();
 
@@ -45,8 +44,6 @@ app.post(`/auth/login`, async (c) => {
   return c.text(`You successfully logged in`);
 });
 
-app.route("/products", products).route("/games", games);
-
-// app.route("/games", games);
+app.route("/products", products).route("/games", games).route("/users", users);
 
 export type AppType = typeof app;
