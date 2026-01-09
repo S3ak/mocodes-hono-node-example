@@ -1,18 +1,59 @@
 import { Hono } from "hono";
 import type { Users } from "./users.ts";
 import { pool } from "../../db/mySQL/database.js";
+import { zValidator } from "../../utils/validator-wrapper.js";
+import { z } from "zod";
 
 const users = new Hono();
 
-users.get("/", async (c) => {
-  try {
-    const [rows] = await pool.execute(`SELECT * FROM users`);
-    let newUsers = rows as Users[];
-
-    return c.json(newUsers);
-  } catch (error) {
-    return c.text(error?.message || "Something went wrong", 400);
-  }
+const newUserFormSchema = z.object({
+  username: z.string().min(2).max(256),
+  email: z.email(),
 });
+
+users
+  .get("/", async (c) => {
+    try {
+      const [rows] = await pool.execute(`SELECT * FROM users`);
+      let newUsers = rows as Users[];
+
+      return c.json(newUsers);
+    } catch (error) {
+      return c.text((error as Error)?.message || "Failed to fetch users", 400);
+    }
+  })
+  .get("/:id", async (c) => {
+    const { id } = c.req.param();
+    try {
+      const [rows] = await pool.execute(`SELECT * FROM users WHERE id = ?`, [
+        id,
+      ]);
+      let newUsers = rows as Users[];
+
+      return c.json(newUsers);
+    } catch (error) {
+      return c.text((error as Error)?.message || "Failed to fetch users", 400);
+    }
+  })
+  .post("/", zValidator("form", newUserFormSchema), async (c) => {
+    const { username, email } = c.req.valid("form");
+
+    const [result, fields] = await pool.execute(
+      `INSERT INTO users (username, email) VALUES (?, ?);`,
+      [username, email]
+    );
+
+    return c.json(
+      {
+        ok: true,
+        message: "User created successfully!",
+        data: {
+          result,
+          fields,
+        },
+      },
+      201
+    );
+  });
 
 export default users;
