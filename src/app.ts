@@ -5,10 +5,10 @@ import { app as products } from "./modules/products/products.route.js";
 import games from "./modules/games/games.route.js";
 import users from "./modules/users/users.route.js";
 import posts from "./modules/posts/posts.route.js";
+import { BASE_URL } from "./constants.js";
 
 dotenv.config();
 
-const BASE_URL = "/api/v1";
 export const app = new Hono().basePath(BASE_URL);
 
 app.get(`/hello`, (c) => {
