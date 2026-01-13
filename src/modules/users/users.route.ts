@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import type { Users } from "./users.ts";
+import type { Users, UsersResponse } from "./users.ts";
 import { pool } from "../../db/mySQL/database.js";
 import { zValidator } from "../../utils/validator-wrapper.js";
 import {
@@ -14,11 +14,16 @@ const users = new Hono();
 // We chain all of our roots off the user Hono app.
 users
   .get("/", zValidator("query", sortUsersSchema), async (c) => {
-    const { dir, sortBy, limit = 30 } = c.req.query();
-    try {
-      let sqlQueryString = "SELECT * FROM users";
-      let sqlCountString = "SELECT COUNT(*) FROM users";
+    const { dir, sortBy, limit = 10, page = 1 } = c.req.query();
 
+    const formattedLimit = Number(limit);
+    const formattedPage = Number(page);
+    let sqlQueryString = "SELECT * FROM users";
+    let sqlCountString = "SELECT COUNT(*) FROM users";
+    const offset = (formattedPage - 1) * formattedLimit;
+
+    try {
+      // NOTE: The order matters because SQL has a string format
       if (sortBy) {
         sqlQueryString += ` ORDER BY ${sortBy}`;
       }
@@ -32,8 +37,12 @@ users
         sqlQueryString += ` LIMIT ${limit}`;
       }
 
-      // We query our database
-      const [rows, x] = await pool.execute(sqlQueryString);
+      if (offset) {
+        sqlQueryString += ` OFFSET ${offset.toString()}`;
+      }
+
+      // NOTE: We query our database
+      const [rows] = await pool.execute(sqlQueryString);
       const [countRowResult] = await pool.execute(sqlCountString);
 
       let newUsers = rows as Users[];
@@ -44,14 +53,14 @@ users
       const total = countRow[0]["COUNT(*)"];
 
       // We return a JSON response for our front-end webapp to use.
-      return c.json({
+      return c.json<UsersResponse>({
         ok: true,
         message: "Fetch users successfully",
         data: newUsers,
         // Our pagination infomation goes here
         meta: {
           total,
-          skip: 0,
+          skip: offset,
           limit: Number(limit),
         },
       });
