@@ -2,24 +2,49 @@ import { Hono } from "hono";
 import type { Users } from "./users.ts";
 import { pool } from "../../db/mySQL/database.js";
 import { zValidator } from "../../utils/validator-wrapper.js";
-import { z } from "zod";
+import {
+  newUserFormSchema,
+  updateUserFormSchema,
+  sortUsersSchema,
+} from "./users.schema.js";
 
+// We define our new base route as app
 const users = new Hono();
 
-const newUserFormSchema = z.object({
-  username: z.string().min(2).max(256),
-  email: z.email(),
-});
-
-const updateUserFormSchema = newUserFormSchema.partial();
-
+// We chain all of our roots off the user Hono app.
 users
-  .get("/", async (c) => {
+  .get("/", zValidator("query", sortUsersSchema), async (c) => {
+    const { dir, sortBy } = c.req.query();
     try {
-      const [rows] = await pool.execute(`SELECT * FROM users`);
+      let sqlQueryString = "SELECT * FROM users";
+
+      if (sortBy) {
+        sqlQueryString += ` ORDER BY ${sortBy}`;
+      }
+
+      if (sortBy && dir) {
+        sqlQueryString += ` ${dir.toUpperCase()}`;
+      }
+
+      console.log("sqlQueryString", sqlQueryString);
+
+      // We query our database
+      const [rows] = await pool.execute(sqlQueryString);
+
       let newUsers = rows as Users[];
 
-      return c.json(newUsers);
+      // We return a JSON response for our front-end webapp to use.
+      return c.json({
+        ok: true,
+        message: "Fetch users successfully",
+        data: newUsers,
+        // Our pagination infomation goes here
+        meta: {
+          total: 194,
+          skip: 0,
+          limit: 30,
+        },
+      });
     } catch (error) {
       return c.text((error as Error)?.message || "Failed to fetch users", 400);
     }
@@ -40,22 +65,28 @@ users
   .post("/", zValidator("form", newUserFormSchema), async (c) => {
     const { username, email } = c.req.valid("form");
 
-    const [result, fields] = await pool.execute(
-      `INSERT INTO users (username, email) VALUES (?, ?);`,
-      [username, email]
-    );
-
-    return c.json(
-      {
-        ok: true,
-        message: "User created successfully!",
-        data: {
-          result,
-          fields,
+    try {
+      const [result, fields] = await pool.execute(
+        `INSERT INTO users (username, email) VALUES (?, ?);`,
+        [username, email]
+      );
+      return c.json(
+        {
+          ok: true,
+          message: "User created successfully!",
+          data: {
+            result,
+            fields,
+          },
         },
-      },
-      201
-    );
+        201
+      );
+    } catch (error) {
+      return c.text(
+        (error as Error)?.message || "Failed to create a new user",
+        400
+      );
+    }
   })
   .put("/:id", zValidator("form", updateUserFormSchema), async (c) => {
     const { username, email } = c.req.valid("form");
@@ -66,19 +97,35 @@ users
     };
 
     if (email) {
-      const [emailResult] = await pool.execute(
-        `UPDATE users SET email = ? WHERE id = ?`,
-        [email, id]
-      );
-      newResults.email = emailResult;
+      try {
+        const [emailResult] = await pool.execute(
+          `UPDATE users SET email = ? WHERE id = ?`,
+          [email, id]
+        );
+        newResults.email = emailResult;
+      } catch (error) {
+        c.text(
+          (error as Error)?.message ||
+            "Failed to update the user, Something is wrong with email",
+          400
+        );
+      }
     }
 
     if (username) {
-      const [usernameResult] = await pool.execute(
-        `UPDATE users SET username = ? WHERE id = ?`,
-        [username, id]
-      );
-      newResults.username = usernameResult;
+      try {
+        const [usernameResult] = await pool.execute(
+          `UPDATE users SET username = ? WHERE id = ?`,
+          [username, id]
+        );
+        newResults.username = usernameResult;
+      } catch (error) {
+        c.text(
+          (error as Error)?.message ||
+            "Failed to update the user, , Something is wrong with username",
+          400
+        );
+      }
     }
 
     return c.json({
@@ -91,22 +138,23 @@ users
   })
   .delete("/:id", async (c) => {
     const { id } = c.req.param();
+
     try {
-      const [findResult] = await pool.execute(
+      const [findResult, y] = await pool.execute(
         `SELECT FROM users WHERE id = ?`,
         [id]
       );
 
       // #TODO: First find the user then delete the user;
 
-      const [result] = await pool.execute(`DELETE FROM users WHERE id = ?`, [
+      const [result, x] = await pool.execute(`DELETE FROM users WHERE id = ?`, [
         id,
       ]);
+
+      return c.text(`user with id:${id} was deleted successfully`);
     } catch (error) {
       return c.text("Could not delete user", 404);
     }
-
-    return c.text(`user ${id} was deleted successfully`);
   });
 
 export default users;
