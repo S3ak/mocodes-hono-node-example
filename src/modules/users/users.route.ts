@@ -66,7 +66,7 @@ users
     };
 
     if (email) {
-      const [emailResult, emailFields] = await pool.execute(
+      const [emailResult] = await pool.execute(
         `UPDATE users SET email = ? WHERE id = ?`,
         [email, id]
       );
@@ -74,7 +74,7 @@ users
     }
 
     if (username) {
-      const [usernameResult, usernameFields] = await pool.execute(
+      const [usernameResult] = await pool.execute(
         `UPDATE users SET username = ? WHERE id = ?`,
         [username, id]
       );
@@ -88,6 +88,25 @@ users
         result: newResults,
       },
     });
+  })
+  .delete("/:id", async (c) => {
+    const { id } = c.req.param();
+    try {
+      const [findResult] = await pool.execute(
+        `SELECT FROM users WHERE id = ?`,
+        [id]
+      );
+
+      // #TODO: First find the user then delete the user;
+
+      const [result] = await pool.execute(`DELETE FROM users WHERE id = ?`, [
+        id,
+      ]);
+    } catch (error) {
+      return c.text("Could not delete user", 404);
+    }
+
+    return c.text(`user ${id} was deleted successfully`);
   });
 
 export default users;
