@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import { app as products } from "./modules/products/products.route.js";
 import games from "./modules/games/games.route.js";
 import users from "./modules/users/users.route.js";
+import posts from "./modules/posts/posts.route.js";
 
 dotenv.config();
 
@@ -44,6 +45,10 @@ app.post(`/auth/login`, async (c) => {
   return c.text(`You successfully logged in`);
 });
 
-app.route("/products", products).route("/games", games).route("/users", users);
+app
+  .route("/products", products)
+  .route("/games", games)
+  .route("/users", users)
+  .route("/posts", posts);
 
 export type AppType = typeof app;

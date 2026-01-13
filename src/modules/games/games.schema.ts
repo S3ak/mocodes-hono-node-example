@@ -11,6 +11,7 @@ export const GamesSchema = z.object({
   rating: z.number().int().min(0).max(5),
 });
 
+// #TODO: move to utils
 function dateToString(date: Date) {
   return date.toISOString();
 }

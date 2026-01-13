@@ -7,6 +7,7 @@ import {
   updateUserFormSchema,
   sortUsersSchema,
 } from "./users.schema.js";
+import type { PostWithUser } from "../posts/posts.js";
 
 // We define our new base route as app
 const users = new Hono();
@@ -76,7 +77,11 @@ users
       ]);
       let newUsers = rows as Users[];
 
-      return c.json(newUsers);
+      return c.json({
+        ok: true,
+        message: "fetched user successfully",
+        data: newUsers,
+      });
     } catch (error) {
       return c.text((error as Error)?.message || "Failed to fetch users", 400);
     }
@@ -159,12 +164,15 @@ users
     const { id } = c.req.param();
 
     try {
-      const [findResult, y] = await pool.execute(
+      // #TODO: First find the user then delete the user;
+      const [findResult] = await pool.execute(
         `SELECT FROM users WHERE id = ?`,
         [id]
       );
 
-      // #TODO: First find the user then delete the user;
+      if (!findResult) {
+        return c.text("User not found", 404);
+      }
 
       const [result, x] = await pool.execute(`DELETE FROM users WHERE id = ?`, [
         id,
@@ -172,7 +180,35 @@ users
 
       return c.text(`user with id:${id} was deleted successfully`);
     } catch (error) {
-      return c.text("Could not delete user", 404);
+      return c.text("Failed to delete user", 500);
+    }
+  })
+  .get("/:id/posts", async (c) => {
+    const { id } = c.req.param();
+    try {
+      const [rows] = await pool.execute(
+        `SELECT 
+          posts.id,
+          posts.title,
+          posts.content,
+          posts.user_id,
+          posts.created_at
+        FROM posts 
+        WHERE posts.user_id = ?
+        ORDER BY posts.created_at DESC`,
+        [id]
+      );
+
+      let postData = rows as PostWithUser[];
+      console.log("postData >>>", postData);
+
+      return c.json({
+        ok: true,
+        message: "fetched posts from user successfully",
+        data: postData,
+      });
+    } catch (error) {
+      return c.text((error as Error)?.message || "Failed to fetch posts", 400);
     }
   });
 
