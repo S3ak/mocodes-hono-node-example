@@ -14,24 +14,34 @@ const users = new Hono();
 // We chain all of our roots off the user Hono app.
 users
   .get("/", zValidator("query", sortUsersSchema), async (c) => {
-    const { dir, sortBy } = c.req.query();
+    const { dir, sortBy, limit = 30 } = c.req.query();
     try {
       let sqlQueryString = "SELECT * FROM users";
+      let sqlCountString = "SELECT COUNT(*) FROM users";
 
       if (sortBy) {
         sqlQueryString += ` ORDER BY ${sortBy}`;
       }
 
+      // NOTE: Dir doesn't work with out a sortBy
       if (sortBy && dir) {
         sqlQueryString += ` ${dir.toUpperCase()}`;
       }
 
-      console.log("sqlQueryString", sqlQueryString);
+      if (limit) {
+        sqlQueryString += ` LIMIT ${limit}`;
+      }
 
       // We query our database
-      const [rows] = await pool.execute(sqlQueryString);
+      const [rows, x] = await pool.execute(sqlQueryString);
+      const [countRowResult] = await pool.execute(sqlCountString);
 
       let newUsers = rows as Users[];
+      let countRow = countRowResult as {
+        "COUNT(*)": number;
+      }[];
+
+      const total = countRow[0]["COUNT(*)"];
 
       // We return a JSON response for our front-end webapp to use.
       return c.json({
@@ -40,9 +50,9 @@ users
         data: newUsers,
         // Our pagination infomation goes here
         meta: {
-          total: 194,
+          total,
           skip: 0,
-          limit: 30,
+          limit: Number(limit),
         },
       });
     } catch (error) {
