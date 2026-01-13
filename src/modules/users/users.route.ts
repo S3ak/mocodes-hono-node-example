@@ -11,6 +11,8 @@ const newUserFormSchema = z.object({
   email: z.email(),
 });
 
+const updateUserFormSchema = newUserFormSchema.partial();
+
 users
   .get("/", async (c) => {
     try {
@@ -54,6 +56,38 @@ users
       },
       201
     );
+  })
+  .put("/:id", zValidator("form", updateUserFormSchema), async (c) => {
+    const { username, email } = c.req.valid("form");
+    const { id } = c.req.param();
+    let newResults = {
+      email: {},
+      username: {},
+    };
+
+    if (email) {
+      const [emailResult, emailFields] = await pool.execute(
+        `UPDATE users SET email = ? WHERE id = ?`,
+        [email, id]
+      );
+      newResults.email = emailResult;
+    }
+
+    if (username) {
+      const [usernameResult, usernameFields] = await pool.execute(
+        `UPDATE users SET username = ? WHERE id = ?`,
+        [username, id]
+      );
+      newResults.username = usernameResult;
+    }
+
+    return c.json({
+      ok: true,
+      message: "User updated successfully!",
+      data: {
+        result: newResults,
+      },
+    });
   });
 
 export default users;
