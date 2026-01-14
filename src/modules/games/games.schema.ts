@@ -18,6 +18,20 @@ export const GamesResponseSchema = z.object({
   data: z.array(GamesSchema),
 });
 
+export const filterSchema = z.object({
+  genre: z.enum(GAME_GENRES).optional(),
+  maxPrice: z.coerce.number().min(0).default(60).optional(),
+  sort: z.enum(["asc", "desc"]).default("asc").optional(),
+});
+
+export const newGameFormSchema = z.object({
+  name: z.string().min(2).max(256),
+  genre: z.enum(GAME_GENRES),
+  release: z.string("Release year is missing"),
+  price: z.string(),
+  rating: z.string(),
+});
+
 function toNormalPrice(price: Number) {
   return parseFloat(price.toFixed(2));
 }

@@ -1,62 +1,18 @@
 import { Hono } from "hono";
+
 import type { Games } from "./games.js";
+import { filterSchema, newGameFormSchema } from "./games.schema.js";
+import { readData, writeData } from "../../utils/fs.js";
 import { zValidator } from "../../utils/validator-wrapper.js";
-import { z } from "zod";
-import { GAME_GENRES } from "./games.schema.js";
-
-import { readFile, writeFile } from "node:fs/promises";
-import { join, dirname } from "path";
-import { fileURLToPath } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 
 const DB_FILE = "./data.json";
-const fullPath = join(__dirname, DB_FILE);
 
-// Function to read data from the JSON file
-async function readData() {
-  try {
-    const data = await readFile(fullPath, "utf8");
-    return JSON.parse(data);
-  } catch (error) {
-    // If the file doesn't exist or there's an error, return a default value (e.g., empty array)
-    return [];
-  }
-}
-
-// Function to write data to the JSON file
-async function writeData(data: Games[]) {
-  try {
-    const jsonString = JSON.stringify(data, null, 2); // Use 2 spaces for formatting
-    await writeFile(fullPath, jsonString, "utf8");
-  } catch (error) {
-    console.error("Error writing to file:", error);
-  }
-}
-
-const games = new Hono();
-
-const filterSchema = z.object({
-  genre: z.enum(GAME_GENRES).optional(),
-  maxPrice: z.coerce.number().min(0).default(60).optional(),
-  sort: z.enum(["asc", "desc"]).default("asc").optional(),
-});
-
-const newGameFormSchema = z.object({
-  name: z.string().min(2).max(256),
-  genre: z.enum(GAME_GENRES),
-  release: z.string("Release year is missing"),
-  price: z.string(),
-  rating: z.string(),
-});
-
-games
+const games = new Hono()
   .get("/", zValidator("query", filterSchema), async (c) => {
     const { maxPrice, genre } = c.req.valid("query");
 
     // #TODO wrap in try catch
-    let newGames: Games[] = await readData();
+    let newGames: Games[] = await readData(DB_FILE);
 
     // #TODO: GET /games?genre=action&maxPrice=60 - Combine genre and price filters.
     if (genre) {
@@ -76,7 +32,7 @@ games
   .get("/:id", async (c) => {
     const { id } = c.req.param();
 
-    const allGames: Games[] = await readData();
+    const allGames: Games[] = await readData(DB_FILE);
     // const allGames: Games[] = await sql`SELECT * FROM gamse WHERE id = ${id};`;
 
     const foundGame = allGames.find((game) => game.id === id);
@@ -87,7 +43,7 @@ games
   .get("/genre/:genre", async (c) => {
     const { genre } = c.req.param();
 
-    const allGames: Games[] = await readData();
+    const allGames: Games[] = await readData(DB_FILE);
 
     const foundGames = filterByGenre(allGames, genre);
 
@@ -98,7 +54,7 @@ games
   .post("/", zValidator("form", newGameFormSchema), async (c) => {
     const { name, genre, release, price, rating } = c.req.valid("form");
     // const allGames: Games[] = await readData();
-    const allGames: Games[] = await readData();
+    const allGames: Games[] = await readData(DB_FILE);
 
     let newGames: Games[] = [
       ...allGames,
@@ -112,8 +68,8 @@ games
       },
     ];
 
-    await writeData(newGames);
-    await readData();
+    await writeData(DB_FILE, newGames);
+    await readData(DB_FILE);
 
     return c.json(
       {
