@@ -5,6 +5,11 @@ export const UsersSchema = z.object({
   id: z.number(),
   username: z.string(),
   email: z.string().max(255),
+  password: z.string().max(255),
+});
+
+export const UsersSchemaWithoutPasssWord = UsersSchema.omit({
+  password: true,
 });
 
 export const newUserFormSchema = z.object({
@@ -28,6 +33,6 @@ export const sortUsersSchema = z.object({
 export const usersAPIResponseSchema = z.object({
   ok: z.boolean(),
   message: z.string().optional(),
-  data: z.array(UsersSchema),
+  data: z.array(UsersSchemaWithoutPasssWord),
   meta: MetaSchema,
 });

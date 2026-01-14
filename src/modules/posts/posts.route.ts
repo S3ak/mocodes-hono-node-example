@@ -22,14 +22,16 @@ posts.get("/", async (c) => {
     `);
 
     const postsData = rows as PostWithUser[];
+    //#TODO: get from DB
+    const total = 100;
 
     return c.json({
       ok: true,
       message: "fetched posts successfully",
       data: postsData,
       meta: {
+        total: total,
         // #TODO
-        total: 100,
         limit: 0,
         skip: 0,
       },

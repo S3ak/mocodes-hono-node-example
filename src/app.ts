@@ -6,6 +6,7 @@ import games from "./modules/games/games.route.js";
 import users from "./modules/users/users.route.js";
 import posts from "./modules/posts/posts.route.js";
 import { BASE_URL } from "./constants.js";
+import auth from "./modules/auth/auth.route.js";
 
 dotenv.config();
 
@@ -36,19 +37,11 @@ app.get(`/protected`, async (c) => {
   return c.text(`You are not authorized`, 401);
 });
 
-//  Body
-app.post(`/auth/login`, async (c) => {
-  const body = await c.req.parseBody();
-
-  console.log("body >>>", body);
-
-  return c.text(`You successfully logged in`);
-});
-
 app
   .route("/products", products)
   .route("/games", games)
   .route("/users", users)
-  .route("/posts", posts);
+  .route("/posts", posts)
+  .route("/auth", auth);
 
 export type AppType = typeof app;
