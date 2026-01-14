@@ -9,7 +9,7 @@ const products: Product[] = [
   { id: "3", name: "Keyboard", price: 80 },
 ];
 
-export const app = new Hono()
+export const productsRoute = new Hono()
   .get("/", (c) => {
     return c.json(products);
   })
@@ -48,3 +48,5 @@ export const app = new Hono()
       201
     );
   });
+
+export default productsRoute;
