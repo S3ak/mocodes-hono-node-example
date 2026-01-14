@@ -10,7 +10,7 @@ function makeFullPath(relPath: string = "") {
 }
 
 // Function to read data from the JSON file
-async function readData(relPath = "") {
+export async function readData(relPath: string) {
   try {
     const data = await readFile(makeFullPath(relPath), "utf8");
     return JSON.parse(data);
@@ -21,7 +21,7 @@ async function readData(relPath = "") {
 }
 
 // Function to write data to the JSON file
-async function writeData(data: any[], relPath = "") {
+export async function writeData<T>(relPath: string, data: T[]) {
   try {
     const jsonString = JSON.stringify(data, null, 2); // Use 2 spaces for formatting
     await writeFile(makeFullPath(relPath), jsonString, "utf8");
