@@ -23,12 +23,10 @@ posts.get("/", async (c) => {
 
     const postsData = rows as PostWithUser[];
 
-    return c.json<PostsWithUserResponse>({
+    return c.json({
       ok: true,
       message: "fetched posts successfully",
-      data: {
-        posts: postsData,
-      },
+      data: postsData,
       meta: {
         // #TODO
         total: 100,

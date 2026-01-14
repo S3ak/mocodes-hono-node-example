@@ -14,6 +14,7 @@ export const app = new Hono()
     return c.json(products);
   })
   .get("/:id", (c) => {
+    //NOTE: We have not validated the paramcoming from the client
     const id = c.req.param("id");
     const foundProduct = products.find((product) => product.id === id);
     if (!foundProduct) {
@@ -38,16 +39,11 @@ export const app = new Hono()
       price,
     });
 
-    // We should convert this values to the proper types
-
     return c.json(
       {
         ok: true,
-        data: {
-          id: newID,
-          name,
-          price,
-        },
+        // #NOTE: Trick to get last item in array
+        data: products.at(-1),
       },
       201
     );

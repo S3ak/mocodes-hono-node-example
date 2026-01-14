@@ -8,6 +8,5 @@ export const newProductSchema = z.object({
   price: z.coerce
     .number()
     .min(0, "Must be greater than or equal to zero")
-    .default(1)
     .transform((p) => Number(Number(p).toFixed(2))),
 });
