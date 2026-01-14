@@ -2,7 +2,7 @@ import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { LoginSchema, RegisterFormSchema } from "./auth.schema.js";
 import { pool } from "../../db/mySQL/database.js";
-import type { Users, UsersResponse } from "../users/users.js";
+import type { Users } from "../users/users.js";
 import bcrypt from "bcrypt";
 import type { ResultSetHeader } from "mysql2";
 import { generateToken } from "../../utils/jwt.js";
@@ -10,10 +10,6 @@ import { generateToken } from "../../utils/jwt.js";
 // import type { JwtVariables } from "hono/jwt";
 
 const auth = new Hono();
-
-// FIXME:
-const PASSWORD = process.env.PASSWORD || "fed";
-const USERNAME = process.env.USERNAME || "Pa55W0rd!";
 
 auth
   .post("/register", zValidator("form", RegisterFormSchema), async (c) => {
@@ -27,8 +23,6 @@ auth
       );
 
       const existingUsers = rows as Users[];
-
-      console.log("existingUsers", existingUsers);
 
       if (existingUsers.length > 0) {
         return c.text(`User already exists`, 400);
@@ -66,13 +60,24 @@ auth
   .post("/login", zValidator("form", LoginSchema), async (c) => {
     try {
       const { email, username, password } = c.req.valid("form");
+      let users: Users[] = [];
 
-      // Find user by email
-      const [rows] = await pool.execute("SELECT * FROM users WHERE email = ?", [
-        email,
-      ]);
+      if (email && !username) {
+        // Find user by email
+        const [rows] = await pool.execute(
+          "SELECT * FROM users WHERE email = ?",
+          [email]
+        );
+        users = rows as Users[];
+      }
 
-      const users = rows as Users[];
+      if (username && !email) {
+        const [rows] = await pool.execute(
+          "SELECT * FROM users WHERE username = ?",
+          [username]
+        );
+        users = rows as Users[];
+      }
 
       if (users.length === 0) {
         return c.json(
@@ -110,7 +115,6 @@ auth
         ok: true,
         message: `Welcome ${user.username}`,
         data: userResponse,
-        token: token,
       });
     } catch (error) {
       console.error("Login error:", error);
