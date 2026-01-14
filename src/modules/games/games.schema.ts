@@ -1,4 +1,5 @@
 import { z } from "@hono/zod-openapi";
+import { dateToString } from "../../utils/date.js";
 
 export const GAME_GENRES = ["RPG", "Action", "FPS"] as const;
 
@@ -11,10 +12,11 @@ export const GamesSchema = z.object({
   rating: z.number().int().min(0).max(5),
 });
 
-// #TODO: move to utils
-function dateToString(date: Date) {
-  return date.toISOString();
-}
+export const GamesResponseSchema = z.object({
+  ok: z.boolean(),
+  message: z.string().optional(),
+  data: z.array(GamesSchema),
+});
 
 function toNormalPrice(price: Number) {
   return parseFloat(price.toFixed(2));
