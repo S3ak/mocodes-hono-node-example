@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import type { Product } from "./products.js";
-import { validator } from "hono/validator";
+import { zValidator } from "../../utils/validator-wrapper.js";
+import { newProductSchema } from "./products.schema.js";
 
 const products: Product[] = [
   { id: "1", name: "Laptop", price: 1200 },
@@ -26,44 +27,28 @@ export const app = new Hono()
 
     return c.json(foundProduct);
   })
-  .post(
-    "/",
-    validator("form", (values, c) => {
-      console.log("values", values);
-      const { name, price } = values;
-      // We should convert this values to the proper types
-      const formattedPrice = Number(Number(price).toFixed(2));
+  .post("/", zValidator("form", newProductSchema), (c) => {
+    const { name, price } = c.req.valid("form");
+    let newID = crypto.randomUUID();
 
-      // Note: Vanilla validation
-      if (!name || !price) {
-        return c.text(
-          "Could not create product, Please check missing values",
-          400
-        );
-      }
+    // #TODO: Insert new product into the DB
+    products.push({
+      id: newID,
+      name,
+      price,
+    });
 
-      if (typeof name !== "string") {
-        return c.text("Please check the name of the product", 400);
-      }
+    // We should convert this values to the proper types
 
-      if (
-        typeof formattedPrice !== "number" ||
-        formattedPrice < 0 ||
-        formattedPrice > 99999
-      ) {
-        return c.text("Please check the price of the product", 400);
-      }
-
-      return c.json(
-        {
-          ok: true,
-          data: {
-            id: crypto.randomUUID(),
-            name,
-            price,
-          },
+    return c.json(
+      {
+        ok: true,
+        data: {
+          id: newID,
+          name,
+          price,
         },
-        201
-      );
-    })
-  );
+      },
+      201
+    );
+  });
