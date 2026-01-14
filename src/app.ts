@@ -1,4 +1,4 @@
-import { Hono } from "hono";
+import { OpenAPIHono } from "@hono/zod-openapi";
 import { env } from "hono/adapter";
 import dotenv from "dotenv";
 import { app as products } from "./modules/products/products.route.js";
@@ -9,7 +9,7 @@ import { BASE_URL } from "./constants.js";
 
 dotenv.config();
 
-export const app = new Hono().basePath(BASE_URL);
+export const app = new OpenAPIHono().basePath(BASE_URL);
 
 app.get(`/hello`, (c) => {
   const { NAME } = env<{ NAME: string }>(c);
@@ -50,5 +50,15 @@ app
   .route("/games", games)
   .route("/users", users)
   .route("/posts", posts);
+
+// OpenAPI documentation
+app.doc("/doc", {
+  openapi: "3.0.0",
+  info: {
+    version: "1.0.0",
+    title: "My Hono API",
+    description: "API documentation for my Hono application",
+  },
+});
 
 export type AppType = typeof app;
