@@ -1,11 +1,6 @@
 import { Hono } from "hono";
-import type {
-  PostWithUser,
-  PostResponse,
-  PostsWithUserResponse,
-} from "./posts.js";
+import type { PostWithUser, PostsWithUserResponse } from "./posts.js";
 import { pool } from "../../db/mySQL/database.js";
-import { zValidator } from "../../utils/validator-wrapper.js";
 
 // We define our new base route as app
 const posts = new Hono();
